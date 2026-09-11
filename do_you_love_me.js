@@ -8,55 +8,92 @@ const hint = document.getElementById("hint");
 const buttonArea = document.querySelector(".buttons");
 
 let noCount = 0;
+let lastMove = 0;
 
-function moveNoButton() {
+/*
+  The No button itself has pointer-events:none in CSS.
+  That makes accidental clicks/taps impossible.
+  We detect the pointer near it using the parent interaction area.
+*/
+function moveNoButton(force = false) {
   if (!buttonArea || !noBtn) return;
+
+  const now = performance.now();
+
+  // Prevent dozens of moves firing in one pointer event stream.
+  if (!force && now - lastMove < 220) return;
+  lastMove = now;
 
   noCount++;
 
-  const area = buttonArea.getBoundingClientRect();
-  const button = noBtn.getBoundingClientRect();
+  const positions = [
+    { x: 82, y: 50 },
+    { x: 91, y: 25 },
+    { x: 72, y: 78 },
+    { x: 93, y: 75 },
+    { x: 62, y: 22 },
+    { x: 88, y: 50 }
+  ];
 
-  // Keep the No button completely inside the button area.
-  const padding = 6;
-  const maxX = Math.max(20, (area.width - button.width) / 2 - padding);
-  const maxY = Math.max(20, (area.height - button.height) / 2 - padding);
+  // Pick a position different from the current one.
+  const currentX = parseFloat(noBtn.style.left) || 82;
+  let candidates = positions.filter(p => Math.abs(p.x - currentX) > 8);
+  if (!candidates.length) candidates = positions;
 
-  let x = (Math.random() * 2 - 1) * maxX;
-  let y = (Math.random() * 2 - 1) * maxY;
+  const next = candidates[Math.floor(Math.random() * candidates.length)];
 
-  // Keep it away from the Yes button in the middle.
-  if (Math.abs(x) < 55) x += x < 0 ? -65 : 65;
-
+  noBtn.style.left = `${next.x}%`;
+  noBtn.style.top = `${next.y}%`;
   noBtn.style.transform =
-    `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${Math.random() * 10 - 5}deg)`;
+    `translate(-50%,-50%) rotate(${(Math.random() * 10 - 5).toFixed(1)}deg)`;
 
-  hint.textContent =
-    noCount === 1
-      ? "Nice try! The No button is already running away. 😭"
-      : noCount === 2
-        ? "It really doesn't want to be clicked. 😂"
-        : "Okay... the No button is officially too shy. 💗";
+  if (noCount === 1) {
+    hint.textContent = "Nice try! The No button is running away. 😭";
+  } else if (noCount === 2) {
+    hint.textContent = "It really doesn't want to be clicked. 😂";
+  } else {
+    hint.textContent = "Okay... the No button is officially too shy. 💗";
+  }
 }
 
-// The button is non-clickable; hovering/touching the play area makes it escape.
+/*
+  Desktop:
+  When the pointer approaches the No button, it escapes.
+  The No button itself cannot receive the pointer because pointer-events:none.
+*/
 buttonArea.addEventListener("pointermove", (event) => {
-  if (event.pointerType === "mouse") {
-    const r = noBtn.getBoundingClientRect();
-    const distance = Math.hypot(
-      event.clientX - (r.left + r.width / 2),
-      event.clientY - (r.top + r.height / 2)
-    );
+  if (event.pointerType !== "mouse") return;
 
-    if (distance < 95) moveNoButton();
-  }
-});
+  const rect = noBtn.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const distance = Math.hypot(
+    event.clientX - centerX,
+    event.clientY - centerY
+  );
 
-buttonArea.addEventListener("pointerdown", (event) => {
-  if (event.pointerType === "touch" || event.pointerType === "pen") {
+  if (distance < 115) {
     moveNoButton();
   }
 });
+
+/*
+  Touch/pen:
+  Since No cannot receive pointer events, tapping its visual area
+  reaches the parent instead. Move it immediately.
+*/
+buttonArea.addEventListener("pointerdown", (event) => {
+  if (event.pointerType === "touch" || event.pointerType === "pen") {
+    moveNoButton(true);
+  }
+});
+
+/*
+  Extra safety: if a keyboard somehow focuses anything unexpectedly,
+  immediately return focus to the page and move the No button.
+*/
+noBtn.setAttribute("aria-hidden", "true");
+noBtn.setAttribute("tabindex", "-1");
 
 yesBtn.addEventListener("click", () => {
   start.classList.add("hidden");
@@ -71,7 +108,13 @@ yesBtn.addEventListener("click", () => {
 againBtn.addEventListener("click", () => {
   result.classList.add("hidden");
   start.classList.remove("hidden");
+
   noCount = 0;
-  noBtn.style.transform = "translate(92px,-50%)";
+  lastMove = 0;
+
+  noBtn.style.left = "82%";
+  noBtn.style.top = "50%";
+  noBtn.style.transform = "translate(-50%,-50%)";
+
   hint.textContent = "Try clicking “No”... if you dare.";
 });
