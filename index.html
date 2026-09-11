@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A cute interactive Do You Love Me? web experience.">
+  <title>Do You Love Me? 💗</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="do_you_love_me.css">
+</head>
+<body>
+  <main class="app">
+    <div class="floating-hearts" aria-hidden="true">
+      <span>♥</span><span>♥</span><span>♥</span><span>♥</span><span>♥</span>
+    </div>
+
+    <section class="card" id="start">
+      <img class="demo-gif" src="assets/love-sparkles.gif" alt="Animated heart sparkles">
+      <p class="eyebrow">A tiny question for you</p>
+      <h1>Do you love me?</h1>
+      <p class="subtitle">Be honest... there is only one correct answer. 👀</p>
+      <div class="buttons">
+        <button id="yesBtn" class="btn yes">Yes, I do 💗</button>
+        <button id="noBtn" class="btn no">No 😭</button>
+      </div>
+      <p id="hint" class="hint">Try clicking “No”... if you dare.</p>
+    </section>
+
+    <section class="card hidden" id="loading">
+      <img class="demo-gif" src="assets/heart-loading.gif" alt="Animated loading heart">
+      <p class="eyebrow">Processing...</p>
+      <h2>Checking your answer</h2>
+      <p class="subtitle">Love detected. Please wait...</p>
+    </section>
+
+    <section class="card hidden" id="result">
+      <img class="demo-gif" src="assets/love-celebration.gif" alt="Animated celebration">
+      <p class="eyebrow">CONFIRMED 💞</p>
+      <h2>I knew it!</h2>
+      <p class="subtitle">You officially passed the love test.</p>
+      <button id="againBtn" class="btn yes">Ask again ↻</button>
+    </section>
+  </main>
+  <script src="do_you_love_me.js"></script>
+</body>
+</html>
